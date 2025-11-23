@@ -18,6 +18,8 @@ services:
 
   backend:
     build: .
+    volumes:
+    - .:/app
     container_name: studybuddy_backend
     ports:
       - "5000:5000"
@@ -27,6 +29,7 @@ services:
     environment:
       FLASK_ENV: development
       DATABASE_URL: mysql+pymysql://user:password@db:3306/studybuddy
+      FLASK_APP: app.py 
 
 volumes:
   db_data:
