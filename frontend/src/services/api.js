@@ -140,8 +140,59 @@ const realAuthService = {
 // Válassz: mock vagy real
 export const authService = USE_MOCK ? mockAuthService : realAuthService;
 
-// Group Service
-export const groupService = {
+// Mock Group Service
+const mockGroupService = {
+  searchGroups: async (subject) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Mock csoportok generálása
+        const mockGroups = [
+          {
+            id: 1,
+            name: `${subject} Study Group #1`,
+            subject: subject,
+            description: `${subject} tanulócsoport. Csatlakozz hozzánk!`,
+            member_count: 3,
+            same_interest_members: 2,
+          },
+          {
+            id: 2,
+            name: `${subject} Study Group #2`,
+            subject: subject,
+            description: `${subject} haladó tanulócsoport.`,
+            member_count: 5,
+            same_interest_members: 3,
+          },
+          {
+            id: 3,
+            name: `${subject} Study Group #3`,
+            subject: subject,
+            description: `${subject} kezdő tanulócsoport.`,
+            member_count: 2,
+            same_interest_members: 1,
+          },
+        ];
+
+        const response = {
+          recommended_group: mockGroups[0],
+          all_groups: mockGroups,
+        };
+        resolve(response);
+      }, 1000);
+    });
+  },
+
+  joinGroup: async (groupId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ message: "Sikeresen csatlakoztál a csoporthoz!" });
+      }, 800);
+    });
+  },
+};
+
+// Real Group Service
+const realGroupService = {
   searchGroups: async (subject) => {
     try {
       const response = await api.get(`/groups/search`, {
@@ -164,5 +215,8 @@ export const groupService = {
     }
   },
 };
+
+// Válassz: mock vagy real
+export const groupService = USE_MOCK ? mockGroupService : realGroupService;
 
 export default api;
