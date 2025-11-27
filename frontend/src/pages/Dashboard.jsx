@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Fab } from "@mui/material";
+import { Fab, Avatar } from "@mui/material";
 import { logout } from "../redux/slices/authSlice";
 import { authService } from "../services/api";
 import "./Dashboard.css";
@@ -20,6 +20,19 @@ const Dashboard = () => {
 
   const handleAddButton = () => {
     // TODO: Később hozzáadandó funkcionalitás
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const words = name.trim().split(" ");
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleProfileClick = () => {
+    // TODO: Később hozzáadandó profil funkcionalitás
   };
 
   return (
@@ -52,7 +65,25 @@ const Dashboard = () => {
           >
             +
           </Fab>
-          <span>Szia, {user?.name}!</span>
+          <Avatar
+            onClick={handleProfileClick}
+            sx={{
+              width: 50,
+              height: 50,
+              bgcolor: "#000000",
+              color: "#ffffff",
+              cursor: "pointer",
+              fontSize: "18px",
+              fontWeight: 600,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.1)",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+              },
+            }}
+          >
+            {getInitials(user?.name)}
+          </Avatar>
           <button onClick={handleLogout} className="btn btn-logout">
             Kijelentkezés
           </button>
