@@ -22,7 +22,11 @@ import {
   Alert,
   IconButton,
 } from "@mui/material";
-import { Add as AddIcon, Logout as LogoutIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Logout as LogoutIcon,
+  People as PeopleIcon,
+} from "@mui/icons-material";
 import { logout } from "../redux/slices/authSlice";
 import { authService, groupService } from "../services/api";
 import "./Dashboard.css";
@@ -61,6 +65,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [joiningGroupId, setJoiningGroupId] = useState(null);
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
+  const [selectedGroupName, setSelectedGroupName] = useState("");
 
   const handleLogout = () => {
     authService.logout();
@@ -145,6 +152,24 @@ const Dashboard = () => {
 
   const handleCloseProfileModal = () => {
     setProfileModalOpen(false);
+  };
+
+  const handleViewMembers = async (groupId, groupName) => {
+    setSelectedGroupName(groupName);
+    setMembersModalOpen(true);
+    try {
+      const members = await groupService.getGroupMembers(groupId);
+      setSelectedGroupMembers(members);
+    } catch (err) {
+      setError(err.message || "Hiba történt a tagok lekérése során");
+      setSelectedGroupMembers([]);
+    }
+  };
+
+  const handleCloseMembersModal = () => {
+    setMembersModalOpen(false);
+    setSelectedGroupMembers([]);
+    setSelectedGroupName("");
   };
 
   return (
@@ -274,10 +299,25 @@ const Dashboard = () => {
                       display="flex"
                       justifyContent="space-between"
                       alignItems="center"
+                      gap={1}
                     >
-                      <Typography variant="body2" color="text.secondary">
-                        {group.member_count || 0} / 6 fő
-                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleViewMembers(group.id, group.name)}
+                          sx={{
+                            color: "text.secondary",
+                            "&:hover": {
+                              bgcolor: "action.hover",
+                            },
+                          }}
+                        >
+                          <PeopleIcon />
+                        </IconButton>
+                        <Typography variant="body2" color="text.secondary">
+                          {group.member_count || 0} / 6 fő
+                        </Typography>
+                      </Box>
                       <IconButton
                         color="primary"
                         onClick={() => handleJoinToGroup(group.id)}
@@ -419,6 +459,74 @@ const Dashboard = () => {
             disabled={!selectedSubject}
           >
             Keresés
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Tagok lista Modal */}
+      <Dialog
+        open={membersModalOpen}
+        onClose={handleCloseMembersModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <PeopleIcon />
+            <Typography variant="h5" component="div">
+              Tagok - {selectedGroupName}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedGroupMembers.length === 0 ? (
+            <Box sx={{ py: 3, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Még nincsenek tagok ebben a csoportban.
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ mt: 2 }}>
+              {selectedGroupMembers.map((member, index) => (
+                <Box key={member.id || index}>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
+                    sx={{ py: 1.5 }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: "#000000",
+                        color: "#ffffff",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {getInitials(member.name || member.email)}
+                    </Avatar>
+                    <Box flex={1}>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {member.name || "Névtelen felhasználó"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {member.email || member.major || ""}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {index < selectedGroupMembers.length - 1 && (
+                    <Divider />
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseMembersModal} variant="contained">
+            Bezárás
           </Button>
         </DialogActions>
       </Dialog>

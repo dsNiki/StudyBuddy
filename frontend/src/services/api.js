@@ -189,6 +189,35 @@ const mockGroupService = {
       }, 800);
     });
   },
+
+  getGroupMembers: async (groupId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Mock tagok generálása
+        const mockMembers = [
+          {
+            id: 1,
+            name: "Kovács Anna",
+            email: "kovacs.anna@student.elte.hu",
+            major: "Informatika",
+          },
+          {
+            id: 2,
+            name: "Nagy Péter",
+            email: "nagy.peter@student.elte.hu",
+            major: "Matematika",
+          },
+          {
+            id: 3,
+            name: "Szabó Mária",
+            email: "szabo.maria@student.elte.hu",
+            major: "Fizika",
+          },
+        ];
+        resolve(mockMembers);
+      }, 600);
+    });
+  },
 };
 
 // Real Group Service
@@ -212,6 +241,15 @@ const realGroupService = {
       return response.data;
     } catch (error) {
       throw error.response?.data?.error || "Csatlakozás sikertelen";
+    }
+  },
+
+  getGroupMembers: async (groupId) => {
+    try {
+      const response = await api.get(`/groups/${groupId}/members`);
+      return response.data.members || [];
+    } catch (error) {
+      throw error.response?.data?.error || "Tagok lekérése sikertelen";
     }
   },
 };
