@@ -1,7 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Fab, Avatar } from "@mui/material";
+import {
+  Fab,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Box,
+  Divider,
+} from "@mui/material";
 import { logout } from "../redux/slices/authSlice";
 import { authService } from "../services/api";
 import "./Dashboard.css";
@@ -11,6 +22,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   const handleLogout = () => {
     authService.logout();
@@ -32,7 +44,11 @@ const Dashboard = () => {
   };
 
   const handleProfileClick = () => {
-    // TODO: Később hozzáadandó profil funkcionalitás
+    setProfileModalOpen(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setProfileModalOpen(false);
   };
 
   return (
@@ -95,6 +111,73 @@ const Dashboard = () => {
         <p>Szak: {user?.major}</p>
         <p>Email: {user?.email}</p>
       </main>
+
+      {/* Profil Modal */}
+      <Dialog
+        open={profileModalOpen}
+        onClose={handleCloseProfileModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar
+              sx={{
+                width: 60,
+                height: 60,
+                bgcolor: "#000000",
+                color: "#ffffff",
+                fontSize: "24px",
+                fontWeight: 600,
+              }}
+            >
+              {getInitials(user?.name)}
+            </Avatar>
+            <Typography variant="h5" component="div">
+              Profil
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Teljes név
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {user?.name || "Nincs megadva"}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Email cím
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {user?.email || "Nincs megadva"}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Szak
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {user?.major || "Nincs megadva"}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseProfileModal} variant="contained">
+            Bezárás
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
