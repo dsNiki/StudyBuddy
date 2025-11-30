@@ -695,7 +695,7 @@ const Dashboard = () => {
                   color="text.secondary"
                   sx={{ mt: 1 }}
                 >
-                  Nincs megadva hobbik
+                  Nincs megadva hobbi
                 </Typography>
               )}
             </Box>
