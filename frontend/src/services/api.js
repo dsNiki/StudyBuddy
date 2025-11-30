@@ -25,7 +25,7 @@ api.interceptors.request.use(
 
 // Mock Auth Service
 const mockAuthService = {
-  register: async (email, password, name, major) => {
+  register: async (email, password, name, major, hobbies = []) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         if (
@@ -40,6 +40,7 @@ const mockAuthService = {
             name,
             email,
             major,
+            hobbies,
           };
           const response = {
             token,
@@ -93,13 +94,14 @@ const mockAuthService = {
 
 // Real Auth Service
 const realAuthService = {
-  register: async (email, password, name, major) => {
+  register: async (email, password, name, major, hobbies = []) => {
     try {
       const response = await api.post("/api/auth/register", {
         email,
         password,
         name,
         major,
+        interests: hobbies,
       });
       if (response.data.token) {
         localStorage.setItem("authToken", response.data.token);
