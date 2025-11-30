@@ -42,8 +42,8 @@ def register_routes(app):
         email = data.get("email")
         password = data.get("password")
         major = data.get("major")  
-        #bio = data.get("bio")      
-        interests = data.get("interests")
+        hobbies = data.get("hobbies") or []
+        bio = ",".join(hobbies)
         avatar_url = data.get("avatar_url") 
 
         if not re.match(ELTE_EMAIL_REGEX, email):
@@ -57,13 +57,13 @@ def register_routes(app):
 
         password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode()
 
-        bio_value = ",".join(interests) if isinstance(interests, list) else interests
+        #bio_value = ",".join(interests) if isinstance(interests, list) else interests
         
         new_user = User(
             email=email,
             password_hash=password_hash,
             major=major,
-            bio=bio_value,
+            bio=bio,
             avatar_url=avatar_url
         )
 
@@ -112,8 +112,7 @@ def register_routes(app):
         return jsonify({
             "email": user.email,
             "major": user.major,
-            #"bio": user.bio,
-            "interests": user.bio.split(",") if user.bio else [],
+            "bio": user.bio,
             "avatar_url": user.avatar_url
         })
 
