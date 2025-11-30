@@ -41,9 +41,10 @@ def register_routes(app):
 
         email = data.get("email")
         password = data.get("password")
-        major = data.get("major")  # <-- EZ LETT A NEVE
-        bio = data.get("bio")      # <-- EZ LETT A NEVE
-        avatar_url = data.get("avatar_url")  # opcionális
+        major = data.get("major")  
+        #bio = data.get("bio")      
+        interests = data.get("interests")
+        avatar_url = data.get("avatar_url") 
 
         if not re.match(ELTE_EMAIL_REGEX, email):
             return jsonify({"error": "Csak ELTE-s email használható!"}), 400
@@ -56,11 +57,13 @@ def register_routes(app):
 
         password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode()
 
+        bio_value = ",".join(interests) if isinstance(interests, list) else interests
+        
         new_user = User(
             email=email,
             password_hash=password_hash,
             major=major,
-            bio=bio,
+            bio=bio_value,
             avatar_url=avatar_url
         )
 
@@ -109,7 +112,8 @@ def register_routes(app):
         return jsonify({
             "email": user.email,
             "major": user.major,
-            "bio": user.bio,
+            #"bio": user.bio,
+            "interests": user.bio.split(",") if user.bio else [],
             "avatar_url": user.avatar_url
         })
 
