@@ -410,6 +410,71 @@ const Dashboard = () => {
                 {user?.major || "Nincs megadva"}
               </Typography>
             </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Hobbik
+              </Typography>
+              {user?.hobbies && user.hobbies.length > 0 ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    mt: 1,
+                  }}
+                >
+                  {user.hobbies.map((hobby) => (
+                    <Box
+                      key={hobby}
+                      sx={{
+                        px: 2,
+                        py: 0.75,
+                        borderRadius: "20px",
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {hobby}
+                    </Box>
+                  ))}
+                </Box>
+              ) : user?.interests && user.interests.length > 0 ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    mt: 1,
+                  }}
+                >
+                  {user.interests.map((hobby) => (
+                    <Box
+                      key={hobby}
+                      sx={{
+                        px: 2,
+                        py: 0.75,
+                        borderRadius: "20px",
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {hobby}
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  Nincs megadva hobbik
+                </Typography>
+              )}
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
