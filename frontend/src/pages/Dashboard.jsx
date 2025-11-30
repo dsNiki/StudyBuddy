@@ -293,78 +293,150 @@ const Dashboard = () => {
             </Typography>
             <Box
               sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, 1fr)",
-                  md: "repeat(3, 1fr)",
-                },
+                display: "flex",
+                flexDirection: "column",
                 gap: 2,
               }}
             >
               {groups.map((group) => (
-                <Card key={group.id} sx={{ position: "relative" }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {group.name}
-                    </Typography>
-                    {group.description && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        {group.description}
-                      </Typography>
-                    )}
+                <Card 
+                  key={group.id} 
+                  sx={{ 
+                    position: "relative",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      boxShadow: "0 4px 20px rgba(102, 126, 234, 0.15)",
+                      transform: "translateY(-2px)",
+                    },
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
                     <Box
                       display="flex"
                       justifyContent="space-between"
-                      alignItems="center"
-                      gap={1}
+                      alignItems="flex-start"
+                      gap={2}
+                      flexWrap={{ xs: "wrap", sm: "nowrap" }}
                     >
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleViewMembers(group.id, group.name)}
+                      <Box flex={1} minWidth={0}>
+                        <Typography 
+                          variant="h6" 
+                          gutterBottom
+                          sx={{ 
+                            fontWeight: 600,
+                            color: "#333",
+                            mb: 1,
+                          }}
+                        >
+                          {group.name}
+                        </Typography>
+                        {group.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 2 }}
+                          >
+                            {group.description}
+                          </Typography>
+                        )}
+                        {group.common_hobbies && group.common_hobbies.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography 
+                              variant="caption" 
+                              color="text.secondary"
+                              sx={{ 
+                                display: "block",
+                                mb: 0.75,
+                                fontWeight: 500,
+                              }}
+                            >
+                              Közös hobbik:
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.75,
+                              }}
+                            >
+                              {group.common_hobbies.map((hobby) => (
+                                <Box
+                                  key={hobby}
+                                  sx={{
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: "12px",
+                                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                    color: "white",
+                                    fontSize: "12px",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {hobby}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewMembers(group.id, group.name)}
+                            sx={{
+                              color: "text.secondary",
+                              "&:hover": {
+                                bgcolor: "action.hover",
+                              },
+                            }}
+                          >
+                            <PeopleIcon />
+                          </IconButton>
+                          <Typography variant="body2" color="text.secondary">
+                            {group.member_count || 0} / 6 fő
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <Button
+                          variant="contained"
+                          onClick={() => handleJoinToGroup(group.id)}
+                          disabled={
+                            (group.member_count || 0) >= 6 ||
+                            joiningGroupId === group.id
+                          }
+                          startIcon={
+                            joiningGroupId === group.id ? (
+                              <CircularProgress size={16} color="inherit" />
+                            ) : (
+                              <AddIcon />
+                            )
+                          }
                           sx={{
-                            color: "text.secondary",
+                            bgcolor: "primary.main",
+                            color: "white",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontWeight: 600,
                             "&:hover": {
-                              bgcolor: "action.hover",
+                              bgcolor: "primary.dark",
+                            },
+                            "&.Mui-disabled": {
+                              bgcolor: "grey.300",
+                              color: "grey.500",
                             },
                           }}
                         >
-                          <PeopleIcon />
-                        </IconButton>
-                        <Typography variant="body2" color="text.secondary">
-                          {group.member_count || 0} / 6 fő
-                        </Typography>
+                          {joiningGroupId === group.id ? "Csatlakozás..." : "Csatlakozás"}
+                        </Button>
                       </Box>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleJoinToGroup(group.id)}
-                        disabled={
-                          (group.member_count || 0) >= 6 ||
-                          joiningGroupId === group.id
-                        }
-                        sx={{
-                          bgcolor: "primary.main",
-                          color: "white",
-                          "&:hover": {
-                            bgcolor: "primary.dark",
-                          },
-                          "&.Mui-disabled": {
-                            bgcolor: "grey.300",
-                            color: "grey.500",
-                          },
-                        }}
-                      >
-                        {joiningGroupId === group.id ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          <AddIcon />
-                        )}
-                      </IconButton>
                     </Box>
                   </CardContent>
                 </Card>

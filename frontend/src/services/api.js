@@ -156,6 +156,7 @@ const mockGroupService = {
             description: `${subject} tanulócsoport. Csatlakozz hozzánk!`,
             member_count: 3,
             same_interest_members: 2,
+            common_hobbies: ['Programozás', 'Matematika', 'Játék'],
           },
           {
             id: 2,
@@ -164,6 +165,7 @@ const mockGroupService = {
             description: `${subject} haladó tanulócsoport.`,
             member_count: 5,
             same_interest_members: 3,
+            common_hobbies: ['Sport', 'Olvasás', 'Film'],
           },
           {
             id: 3,
@@ -172,6 +174,7 @@ const mockGroupService = {
             description: `${subject} kezdő tanulócsoport.`,
             member_count: 2,
             same_interest_members: 1,
+            common_hobbies: ['Zene', 'Fotózás'],
           },
         ];
 
