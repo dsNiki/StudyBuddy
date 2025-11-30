@@ -5,6 +5,7 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  initialized: false, // Tracks if auth state has been initialized from localStorage
 };
 
 const authSlice = createSlice({
@@ -46,6 +47,17 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    // Token alapú inicializálás (oldal frissítéskor)
+    initializeAuth: (state, action) => {
+      if (action.payload) {
+        state.isAuthenticated = true;
+        state.user = action.payload;
+      } else {
+        state.isAuthenticated = false;
+        state.user = null;
+      }
+      state.initialized = true; // Mark as initialized
+    },
   },
 });
 
@@ -56,6 +68,7 @@ export const {
   registerSuccess,
   logout,
   clearError,
+  initializeAuth,
 } = authSlice.actions;
 
 export default authSlice.reducer;
