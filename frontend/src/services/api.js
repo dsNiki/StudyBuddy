@@ -164,6 +164,16 @@ const forumService = {
     );
     return response.data.comment;
   },
+
+  deletePost: async (postId) => {
+    const token = getAuthToken();
+    const response = await api.delete(`/posts/${postId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
 };
 
 export { authService, groupService, forumService };

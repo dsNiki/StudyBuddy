@@ -580,7 +580,39 @@ def register_routes(app):
             "posts": posts_json
         }), 200
 
+    @app.route("/posts/<int:post_id>", methods=["DELETE"])
+    def delete_post(post_id):
+        ################### Auth check and case handling
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return jsonify({"error": "Hiányzó token"}), 401
 
+        try:
+            token = auth_header.split(" ")[1]
+            decoded = verify_jwt_token(token)
+        except Exception:
+            return jsonify({"error": "Hibás token"}), 401
+
+        if not decoded:
+            return jsonify({"error": "Érvénytelen vagy lejárt token"}), 401
+
+        user_id = decoded["user_id"]
+
+        post = Post.query.get(post_id)
+        if not post or post.deleted_at is not None:
+            return jsonify({"error": "Poszt nem található"}), 404
+
+        # Csak a poszt szerzője törölheti
+        if post.author_id != user_id:
+            return jsonify({"error": "Nincs jogosultságod a poszt törléséhez"}), 403
+
+        # Soft delete
+        post.deleted_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Poszt sikeresen törölve"
+        }), 200
 
     @app.route("/posts/<int:post_id>/comments", methods=["POST", "OPTIONS"])
     def create_comment(post_id):

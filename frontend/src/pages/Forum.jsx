@@ -15,7 +15,6 @@ import {
   DialogActions,
   Divider,
   Avatar,
-  Chip,
   Alert,
   Collapse,
 } from "@mui/material";
@@ -28,8 +27,9 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   People as PeopleIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { groupService, forumService } from "../services/api";
+import { groupService, forumService, authService } from "../services/api";
 import "./Dashboard.css";
 
 const Forum = () => {
@@ -52,6 +52,9 @@ const Forum = () => {
   const [groupMembers, setGroupMembers] = useState([]);
   const [membersModalOpen, setMembersModalOpen] = useState(false);
   const [selectedGroupMembers, setSelectedGroupMembers] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [deletingPost, setDeletingPost] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     if (!groupId) return;
@@ -229,6 +232,42 @@ const Forum = () => {
   const handleCloseMembersModal = () => {
     setMembersModalOpen(false);
     setSelectedGroupMembers(null);
+  };
+
+  const handleDeletePost = (post) => {
+    setPostToDelete(post);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+
+    setDeletingPost(true);
+    setError(null);
+
+    try {
+      await forumService.deletePost(postToDelete.id);
+      setDeleteDialogOpen(false);
+      setPostToDelete(null);
+      await fetchPosts();
+    } catch (err) {
+      console.error("Poszt törlési hiba:", err);
+      setError(
+        err.response?.data?.error || "Hiba történt a poszt törlése során"
+      );
+    } finally {
+      setDeletingPost(false);
+    }
+  };
+
+  const cancelDeletePost = () => {
+    setDeleteDialogOpen(false);
+    setPostToDelete(null);
+  };
+
+  const getCurrentUserId = () => {
+    const user = authService.getUser();
+    return user ? user.id : null;
   };
 
   // Ha nincs hozzáférés, azonnal redirect
@@ -442,6 +481,22 @@ const Forum = () => {
                         </Typography>
                       </Box>
                     </Box>
+                    {post.author_id === getCurrentUserId() && (
+                      <IconButton
+                        onClick={() => handleDeletePost(post)}
+                        sx={{
+                          color: "#d32f2f",
+                          "&:hover": {
+                            backgroundColor: "rgba(211, 47, 47, 0.1)",
+                            transform: "scale(1.1)",
+                          },
+                          transition: "all 0.2s",
+                        }}
+                        title="Poszt törlése"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
                   </Box>
 
                   <Typography
@@ -806,6 +861,83 @@ const Forum = () => {
             }}
           >
             Bezárás
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Post Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={cancelDeletePost}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "24px",
+            boxShadow: "0 8px 32px rgba(211, 47, 47, 0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #d32f2f 0%, #c62828 100%)",
+            color: "white",
+            borderRadius: "24px 24px 0 0",
+            fontWeight: 600,
+          }}
+        >
+          Poszt törlése
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Biztosan törölni szeretnéd ezt a posztot?
+          </Typography>
+          {postToDelete && (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: "12px",
+                backgroundColor: "rgba(211, 47, 47, 0.05)",
+                border: "1px solid rgba(211, 47, 47, 0.2)",
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                {postToDelete.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {postToDelete.content.substring(0, 100)}
+                {postToDelete.content.length > 100 ? "..." : ""}
+              </Typography>
+            </Box>
+          )}
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            Ez a művelet nem visszavonható!
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={cancelDeletePost}
+            disabled={deletingPost}
+            sx={{ color: "#666" }}
+          >
+            Mégse
+          </Button>
+          <Button
+            onClick={confirmDeletePost}
+            variant="contained"
+            disabled={deletingPost}
+            sx={{
+              background: "linear-gradient(135deg, #d32f2f 0%, #c62828 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #b71c1c 0%, #a01515 100%)",
+              },
+            }}
+          >
+            {deletingPost ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              "Törlés"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
