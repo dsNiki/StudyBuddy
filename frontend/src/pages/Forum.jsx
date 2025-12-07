@@ -353,15 +353,6 @@ const Forum = () => {
                         {formatDate(post.created_at)}
                       </Typography>
                     </Box>
-                    <Chip
-                      label={`ID: ${post.author_id}`}
-                      size="small"
-                      sx={{
-                        background:
-                          "linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)",
-                        color: "#667eea",
-                      }}
-                    />
                   </Box>
 
                   <Typography
@@ -448,13 +439,12 @@ const Forum = () => {
                                             fontSize: "0.875rem",
                                           }}
                                         >
-                                          {comment.author_id}
+                                          {String(comment.author_id).charAt(0)}
                                         </Avatar>
                                         <Typography
                                           variant="caption"
                                           color="text.secondary"
                                         >
-                                          ID: {comment.author_id} •{" "}
                                           {formatDate(comment.created_at)}
                                         </Typography>
                                       </Box>
