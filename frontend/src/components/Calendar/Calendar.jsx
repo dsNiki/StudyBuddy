@@ -386,14 +386,20 @@ const Calendar = ({ open, onClose, groupId }) => {
                                   width: "100%",
                                   mb: 0.5,
                                   fontSize: "0.7rem",
-                                  height: "20px",
-                                  backgroundColor:
-                                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                  height: "22px",
+                                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                   color: "white",
+                                  fontWeight: 500,
+                                  border: "none",
+                                  "&:hover": {
+                                    background: "linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%)",
+                                    transform: "scale(1.02)",
+                                  },
                                   "& .MuiChip-label": {
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
+                                    padding: "0 8px",
                                   },
                                 }}
                               />
