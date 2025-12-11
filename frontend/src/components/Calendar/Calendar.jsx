@@ -109,6 +109,27 @@ const Calendar = ({ open, onClose, groupId }) => {
     });
   };
 
+  // Események csoportosítása időpont szerint
+  const groupEventsByTime = (dayEvents) => {
+    const grouped = {};
+    dayEvents.forEach((event) => {
+      const eventDate = new Date(event.date);
+      const timeKey = `${eventDate.getHours()}:${String(eventDate.getMinutes()).padStart(2, '0')}`;
+      if (!grouped[timeKey]) {
+        grouped[timeKey] = [];
+      }
+      grouped[timeKey].push(event);
+    });
+    return grouped;
+  };
+
+  // Szöveg rövidítése ellipszissel
+  const truncateText = (text, maxLength = 15) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
+
   const handleDateClick = (date) => {
     if (!date) return;
     const dateStr = date.toISOString().split("T")[0];
@@ -333,6 +354,33 @@ const Calendar = ({ open, onClose, groupId }) => {
                     const dayEvents = day ? getEventsForDate(day) : [];
                     const isToday =
                       day && day.toDateString() === new Date().toDateString();
+                    const eventsByTime = day ? groupEventsByTime(dayEvents) : {};
+                    const timeSlots = Object.keys(eventsByTime).sort();
+                    const displayedEvents = [];
+                    let eventCount = 0;
+
+                    // Maximum 2 eseményt jelenítünk meg, prioritás az azonos időpontú eseményeknek
+                    for (let i = 0; i < timeSlots.length && eventCount < 2; i++) {
+                      const timeSlot = timeSlots[i];
+                      const eventsAtTime = eventsByTime[timeSlot];
+                      
+                      if (eventsAtTime.length >= 2 && eventCount === 0) {
+                        // Két vagy több esemény ugyanazon az időponton - egymás mellé
+                        displayedEvents.push({
+                          events: eventsAtTime.slice(0, 2),
+                          sideBySide: true,
+                        });
+                        eventCount += 2;
+                        break; // Ha már 2 eseményt mutatunk, nem folytatjuk
+                      } else if (eventsAtTime.length === 1) {
+                        // Egy esemény az időponton
+                        displayedEvents.push({
+                          events: [eventsAtTime[0]],
+                          sideBySide: false,
+                        });
+                        eventCount++;
+                      }
+                    }
 
                     return (
                       <Box
@@ -373,43 +421,56 @@ const Calendar = ({ open, onClose, groupId }) => {
                             >
                               {day.getDate()}
                             </Typography>
-                            {dayEvents.slice(0, 2).map((event) => (
-                              <Chip
-                                key={event.id}
-                                label={event.title}
-                                size="small"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEventClick(event);
-                                }}
+                            {displayedEvents.map((eventGroup, groupIndex) => (
+                              <Box
+                                key={groupIndex}
                                 sx={{
-                                  width: "100%",
+                                  display: "flex",
+                                  gap: 0.25,
                                   mb: 0.5,
-                                  fontSize: "0.7rem",
-                                  height: "22px",
-                                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                  color: "white",
-                                  fontWeight: 500,
-                                  border: "none",
-                                  "&:hover": {
-                                    background: "linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%)",
-                                    transform: "scale(1.02)",
-                                  },
-                                  "& .MuiChip-label": {
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    padding: "0 8px",
-                                  },
+                                  flexWrap: eventGroup.sideBySide ? "nowrap" : "wrap",
                                 }}
-                              />
+                              >
+                                {eventGroup.events.map((event) => (
+                                  <Chip
+                                    key={event.id}
+                                    label={truncateText(event.title, 8)}
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEventClick(event);
+                                    }}
+                                    sx={{
+                                      flex: eventGroup.sideBySide ? "1 1 0" : "1 1 100%",
+                                      minWidth: 0,
+                                      fontSize: "0.7rem",
+                                      height: "22px",
+                                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                      color: "white",
+                                      fontWeight: 500,
+                                      border: "none",
+                                      "&:hover": {
+                                        background: "linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%)",
+                                        transform: "scale(1.02)",
+                                      },
+                                      "& .MuiChip-label": {
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        padding: "0 4px",
+                                        maxWidth: "100%",
+                                      },
+                                    }}
+                                  />
+                                ))}
+                              </Box>
                             ))}
-                            {dayEvents.length > 2 && (
+                            {dayEvents.length > eventCount && (
                               <Typography
                                 variant="caption"
                                 sx={{ color: "#667eea", fontSize: "0.7rem" }}
                               >
-                                +{dayEvents.length - 2} több
+                                +{dayEvents.length - eventCount} több
                               </Typography>
                             )}
                           </>
