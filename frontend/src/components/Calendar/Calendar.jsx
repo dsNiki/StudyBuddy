@@ -8,7 +8,6 @@ import {
   Box,
   Typography,
   TextField,
-  Grid,
   Card,
   CardContent,
   IconButton,
@@ -86,7 +85,8 @@ const Calendar = ({ open, onClose, groupId }) => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Hétfő = 0
+    const startingDayOfWeek =
+      firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Hétfő = 0
 
     const days = [];
     // Üres cellák a hónap elején
@@ -254,17 +254,17 @@ const Calendar = ({ open, onClose, groupId }) => {
           <Typography variant="h5" component="div" sx={{ fontWeight: 700 }}>
             Naptár
           </Typography>
-          <IconButton
-            onClick={onClose}
-            sx={{ color: "white" }}
-            size="small"
-          >
+          <IconButton onClick={onClose} sx={{ color: "white" }} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ mt: 2, p: 3 }}>
           {error && (
-            <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{ mb: 2 }}
+            >
               {error}
             </Alert>
           )}
@@ -296,12 +296,20 @@ const Calendar = ({ open, onClose, groupId }) => {
               </Box>
 
               {/* Naptár rács */}
-              <Grid container spacing={0.5}>
+              <Box>
                 {/* Hét napjai fejléc */}
-                {daysOfWeek.map((day) => (
-                  <Grid item xs={12 / 7} key={day}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 0.5,
+                    mb: 0.5,
+                  }}
+                >
+                  {daysOfWeek.map((day) => (
                     <Box
+                      key={day}
                       sx={{
+                        flex: "1 1 0",
                         p: 1,
                         textAlign: "center",
                         fontWeight: 600,
@@ -310,21 +318,29 @@ const Calendar = ({ open, onClose, groupId }) => {
                     >
                       {day}
                     </Box>
-                  </Grid>
-                ))}
+                  ))}
+                </Box>
 
                 {/* Naptár napjai */}
-                {days.map((day, index) => {
-                  const dayEvents = day ? getEventsForDate(day) : [];
-                  const isToday =
-                    day &&
-                    day.toDateString() === new Date().toDateString();
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 0.5,
+                  }}
+                >
+                  {days.map((day, index) => {
+                    const dayEvents = day ? getEventsForDate(day) : [];
+                    const isToday =
+                      day && day.toDateString() === new Date().toDateString();
 
-                  return (
-                    <Grid item xs={12 / 7} key={index}>
+                    return (
                       <Box
+                        key={index}
                         onClick={() => handleDateClick(day)}
                         sx={{
+                          flex: "1 1 calc(14.285% - 0.5px)",
+                          minWidth: "calc(14.285% - 0.5px)",
                           minHeight: "100px",
                           p: 1,
                           border: "1px solid rgba(102, 126, 234, 0.2)",
@@ -393,10 +409,10 @@ const Calendar = ({ open, onClose, groupId }) => {
                           </>
                         )}
                       </Box>
-                    </Grid>
-                  );
-                })}
-              </Grid>
+                    );
+                  })}
+                </Box>
+              </Box>
 
               {/* Események listája */}
               {events.length > 0 && (
@@ -404,12 +420,11 @@ const Calendar = ({ open, onClose, groupId }) => {
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Közelgő események
                   </Typography>
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
                     {events
-                      .sort(
-                        (a, b) =>
-                          new Date(a.date) - new Date(b.date)
-                      )
+                      .sort((a, b) => new Date(a.date) - new Date(b.date))
                       .slice(0, 5)
                       .map((event) => {
                         const eventDate = new Date(event.date);
@@ -420,7 +435,8 @@ const Calendar = ({ open, onClose, groupId }) => {
                               borderRadius: "12px",
                               border: "1px solid rgba(102, 126, 234, 0.2)",
                               "&:hover": {
-                                boxShadow: "0 4px 12px rgba(102, 126, 234, 0.2)",
+                                boxShadow:
+                                  "0 4px 12px rgba(102, 126, 234, 0.2)",
                               },
                             }}
                           >
@@ -481,7 +497,9 @@ const Calendar = ({ open, onClose, groupId }) => {
                                     </IconButton>
                                     <IconButton
                                       size="small"
-                                      onClick={() => handleDeleteEvent(event.id)}
+                                      onClick={() =>
+                                        handleDeleteEvent(event.id)
+                                      }
                                       sx={{ color: "#d32f2f" }}
                                     >
                                       <DeleteIcon fontSize="small" />
@@ -631,9 +649,7 @@ const Calendar = ({ open, onClose, groupId }) => {
           <Button
             onClick={handleSubmitEvent}
             variant="contained"
-            disabled={
-              submitting || !eventForm.title.trim() || !eventForm.date
-            }
+            disabled={submitting || !eventForm.title.trim() || !eventForm.date}
             sx={{
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               "&:hover": {
@@ -656,4 +672,3 @@ const Calendar = ({ open, onClose, groupId }) => {
 };
 
 export default Calendar;
-
