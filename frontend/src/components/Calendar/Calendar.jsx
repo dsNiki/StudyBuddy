@@ -651,7 +651,11 @@ const Calendar = ({ open, onClose, groupId }) => {
             fontWeight: 600,
           }}
         >
-          {editingEvent ? "Esemény szerkesztése" : "Új esemény"}
+          {editingEvent
+            ? editingEvent.creator_id === getCurrentUserId()
+              ? "Esemény szerkesztése"
+              : "Esemény megtekintése"
+            : "Új esemény"}
         </DialogTitle>
         <DialogContent sx={{ mt: 2 }}>
           <TextField
@@ -663,6 +667,10 @@ const Calendar = ({ open, onClose, groupId }) => {
             }
             sx={{ mb: 2 }}
             required
+            disabled={
+              editingEvent &&
+              editingEvent.creator_id !== getCurrentUserId()
+            }
           />
           <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
             <TextField
@@ -677,6 +685,10 @@ const Calendar = ({ open, onClose, groupId }) => {
                 shrink: true,
               }}
               required
+              disabled={
+                editingEvent &&
+                editingEvent.creator_id !== getCurrentUserId()
+              }
             />
             <TextField
               fullWidth
@@ -690,6 +702,10 @@ const Calendar = ({ open, onClose, groupId }) => {
                 shrink: true,
               }}
               required
+              disabled={
+                editingEvent &&
+                editingEvent.creator_id !== getCurrentUserId()
+              }
             />
           </Box>
           <TextField
@@ -700,6 +716,10 @@ const Calendar = ({ open, onClose, groupId }) => {
               setEventForm({ ...eventForm, location: e.target.value })
             }
             sx={{ mb: 2 }}
+            disabled={
+              editingEvent &&
+              editingEvent.creator_id !== getCurrentUserId()
+            }
           />
           <TextField
             fullWidth
@@ -710,10 +730,14 @@ const Calendar = ({ open, onClose, groupId }) => {
             onChange={(e) =>
               setEventForm({ ...eventForm, description: e.target.value })
             }
+            disabled={
+              editingEvent &&
+              editingEvent.creator_id !== getCurrentUserId()
+            }
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          {editingEvent && (
+          {editingEvent && editingEvent.creator_id === getCurrentUserId() && (
             <Button
               onClick={() => handleDeleteEvent(editingEvent.id)}
               sx={{ color: "#d32f2f", mr: "auto" }}
@@ -740,7 +764,13 @@ const Calendar = ({ open, onClose, groupId }) => {
           <Button
             onClick={handleSubmitEvent}
             variant="contained"
-            disabled={submitting || !eventForm.title.trim() || !eventForm.date}
+            disabled={
+              submitting ||
+              !eventForm.title.trim() ||
+              !eventForm.date ||
+              (editingEvent &&
+                editingEvent.creator_id !== getCurrentUserId())
+            }
             sx={{
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               "&:hover": {
