@@ -72,6 +72,7 @@ const Dashboard = () => {
   const [myGroups, setMyGroups] = useState([]);
   const [myGroupsLoading, setMyGroupsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   useEffect(() => {
     const fetchMyGroups = async () => {
@@ -89,6 +90,18 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      try {
+        const counts = await groupService.getUnreadPostCounts();
+        setUnreadCounts(counts);
+      } catch (err) {
+        console.error("Olvasatlan posztok száma hiba:", err);
+      }
+    };
+    fetchUnreadCounts();
+  }, [activeTab, myGroups]);
+
+  useEffect(() => {
     if (activeTab === "my") {
       const fetchMyGroups = async () => {
         setMyGroupsLoading(true);
@@ -104,6 +117,24 @@ const Dashboard = () => {
       fetchMyGroups();
     }
   }, [activeTab]);
+
+  // Frissítjük az olvasatlan számokat, amikor a felhasználó visszatér a dashboardra
+  useEffect(() => {
+    const handleFocus = () => {
+      const fetchUnreadCounts = async () => {
+        try {
+          const counts = await groupService.getUnreadPostCounts();
+          setUnreadCounts(counts);
+        } catch (err) {
+          console.error("Olvasatlan posztok száma hiba:", err);
+        }
+      };
+      fetchUnreadCounts();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -870,66 +901,94 @@ const Dashboard = () => {
                   <Box
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                   >
-                    {myGroups.map((group) => (
-                      <Card
-                        key={group.id}
-                        onClick={() => navigate(`/forum/${group.id}`)}
-                        sx={{
-                          borderRadius: "20px",
-                          border: "1px solid rgba(76, 175, 80, 0.3)",
-                          boxShadow: "0 4px 20px rgba(76, 175, 80, 0.1)",
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            boxShadow: "0 8px 32px rgba(76, 175, 80, 0.2)",
-                            transform: "translateY(-2px)",
-                            borderColor: "rgba(76, 175, 80, 0.5)",
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ p: 3 }}>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Box flex={1}>
-                              <Typography
-                                variant="h6"
-                                sx={{ fontWeight: 700, color: "#2e7d32" }}
-                              >
-                                {group.name}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                              >
-                                {group.subject} • Csatlakoztál:{" "}
-                                {new Date(group.joined_at).toLocaleDateString(
-                                  "hu-HU"
-                                )}
-                              </Typography>
-                              {group.description && (
+                    {myGroups.map((group) => {
+                      const unreadCount = unreadCounts[group.id] || 0;
+                      return (
+                        <Card
+                          key={group.id}
+                          onClick={() => navigate(`/forum/${group.id}`)}
+                          sx={{
+                            borderRadius: "20px",
+                            border: "1px solid rgba(76, 175, 80, 0.3)",
+                            boxShadow: "0 4px 20px rgba(76, 175, 80, 0.1)",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                            position: "relative",
+                            "&:hover": {
+                              boxShadow: "0 8px 32px rgba(76, 175, 80, 0.2)",
+                              transform: "translateY(-2px)",
+                              borderColor: "rgba(76, 175, 80, 0.5)",
+                            },
+                          }}
+                        >
+                          <CardContent sx={{ p: 3 }}>
+                            <Box
+                              display="flex"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <Box flex={1}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: 700, color: "#2e7d32" }}
+                                  >
+                                    {group.name}
+                                  </Typography>
+                                  {unreadCount > 0 && (
+                                    <Box
+                                      sx={{
+                                        minWidth: 24,
+                                        height: 24,
+                                        borderRadius: "12px",
+                                        background:
+                                          "linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)",
+                                        color: "white",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "0.75rem",
+                                        fontWeight: 700,
+                                        px: 0.75,
+                                        boxShadow:
+                                          "0 2px 8px rgba(255, 107, 107, 0.4)",
+                                      }}
+                                    >
+                                      {unreadCount > 99 ? "99+" : unreadCount}
+                                    </Box>
+                                  )}
+                                </Box>
                                 <Typography
                                   variant="body2"
-                                  sx={{ mt: 1, fontStyle: "italic" }}
+                                  color="text.secondary"
                                 >
-                                  {group.description}
+                                  {group.subject} • Csatlakoztál:{" "}
+                                  {new Date(group.joined_at).toLocaleDateString(
+                                    "hu-HU"
+                                  )}
                                 </Typography>
-                              )}
+                                {group.description && (
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ mt: 1, fontStyle: "italic" }}
+                                  >
+                                    {group.description}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewMembers(group.id, group.name);
+                                }}
+                              >
+                                <PeopleIcon />
+                              </IconButton>
                             </Box>
-                            <IconButton
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewMembers(group.id, group.name);
-                              }}
-                            >
-                              <PeopleIcon />
-                            </IconButton>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </Box>
                 </Box>
               )
