@@ -1060,7 +1060,7 @@ const Forum = () => {
                                   fullWidth
                                   multiline
                                   rows={2}
-                                  placeholder="Írj egy kommentet... (opcionális, ha csatolsz fájlt)"
+                                  placeholder="Írj egy kommentet..."
                                   value={newComments[post.id] || ""}
                                   onChange={(e) =>
                                     setNewComments({

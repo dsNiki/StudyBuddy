@@ -75,6 +75,18 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
+  // Tab váltáskor frissítjük az URL-t
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "home") {
+      // Kezdőlap esetén eltávolítjuk a tab paramétert
+      navigate("/dashboard", { replace: true });
+    } else {
+      // Egyéb tab-ok esetén beállítjuk a paramétert
+      navigate(`/dashboard?tab=${tab}`, { replace: true });
+    }
+  };
+
   useEffect(() => {
     const fetchMyGroups = async () => {
       setMyGroupsLoading(true);
@@ -232,7 +244,7 @@ const Dashboard = () => {
   };
 
   const handleAddButton = () => {
-    setActiveTab("search");
+    handleTabChange("search");
     //setJoinGroupModalOpen(true);
   };
 
@@ -355,7 +367,7 @@ const Dashboard = () => {
           </Avatar>
           {/* Sorrend: Kezdőlap → Saját csoportok → Keresés → Beállítások → Kijelentkezés */}
           <Button
-            onClick={() => setActiveTab("home")}
+            onClick={() => handleTabChange("home")}
             variant={activeTab === "home" ? "contained" : "outlined"}
             sx={{
               ml: 2.5,
@@ -389,7 +401,7 @@ const Dashboard = () => {
           </Button>
 
           <Button
-            onClick={() => setActiveTab("my")}
+            onClick={() => handleTabChange("my")}
             variant={activeTab === "my" ? "contained" : "outlined"}
             sx={{
               ml: 0.5,
