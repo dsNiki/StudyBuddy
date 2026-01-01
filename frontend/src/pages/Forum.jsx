@@ -78,7 +78,8 @@ const Forum = () => {
   const [commentToEdit, setCommentToEdit] = useState(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [editingCommentFile, setEditingCommentFile] = useState(null);
-  const [uploadingCommentAttachment, setUploadingCommentAttachment] = useState(false);
+  const [uploadingCommentAttachment, setUploadingCommentAttachment] =
+    useState(false);
   const [updatingComment, setUpdatingComment] = useState(false);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
@@ -122,7 +123,7 @@ const Forum = () => {
           }
           // Posztok betöltése
           await fetchPosts();
-          
+
           // Jelöljük meg a posztokat olvasottnak, amikor a felhasználó megnyitja a fórumot
           try {
             await groupService.markGroupPostsRead(groupId);
@@ -156,7 +157,12 @@ const Forum = () => {
     setOpenPostDialog(false);
 
     try {
-      await forumService.createPost(groupId, newPostTitle, newPostContent, newPostFiles);
+      await forumService.createPost(
+        groupId,
+        newPostTitle,
+        newPostContent,
+        newPostFiles
+      );
       setNewPostTitle("");
       setNewPostContent("");
       setNewPostFiles([]);
@@ -196,7 +202,7 @@ const Forum = () => {
   const handleCreateComment = async (postId) => {
     const commentContent = newComments[postId] || "";
     const file = newCommentFiles[postId] || null;
-    
+
     // Legalább content vagy fájl kell legyen
     if ((!commentContent || !commentContent.trim()) && !file) {
       return;
@@ -214,6 +220,14 @@ const Forum = () => {
       // Hozzáadjuk a kommentekhez
       const updatedComments = comments[postId] || [];
       setComments({ ...comments, [postId]: [...updatedComments, newComment] });
+      // Frissítjük a kommentek számát a posztban
+      setPosts(
+        posts.map((p) =>
+          p.id === postId
+            ? { ...p, comment_count: (p.comment_count || 0) + 1 }
+            : p
+        )
+      );
       setNewComments({ ...newComments, [postId]: "" });
       setNewCommentFiles({ ...newCommentFiles, [postId]: null });
     } catch (err) {
@@ -331,15 +345,19 @@ const Forum = () => {
       // Frissítjük a szerkesztendő posztot is
       if (postToEdit) {
         const updatedPosts = await forumService.getPosts(groupId);
-        const updatedPost = updatedPosts.find(p => p.id === postToEdit.id);
+        const updatedPost = updatedPosts.find((p) => p.id === postToEdit.id);
         if (updatedPost) {
           setPostToEdit(updatedPost);
         }
       }
       // Frissítjük a szerkesztendő kommentet is
       if (commentToEdit) {
-        const commentsData = await forumService.getComments(commentToEdit.post_id);
-        const updatedComment = commentsData.find(c => c.id === commentToEdit.id);
+        const commentsData = await forumService.getComments(
+          commentToEdit.post_id
+        );
+        const updatedComment = commentsData.find(
+          (c) => c.id === commentToEdit.id
+        );
         if (updatedComment) {
           setCommentToEdit(updatedComment);
         }
@@ -403,7 +421,9 @@ const Forum = () => {
 
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/posts/${postToEdit.id}/attachments`,
+        `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/posts/${
+          postToEdit.id
+        }/attachments`,
         formData,
         {
           headers: {
@@ -417,7 +437,7 @@ const Forum = () => {
       await fetchPosts();
       // Frissítjük a szerkesztendő posztot is
       const updatedPosts = await forumService.getPosts(groupId);
-      const updatedPost = updatedPosts.find(p => p.id === postToEdit.id);
+      const updatedPost = updatedPosts.find((p) => p.id === postToEdit.id);
       if (updatedPost) {
         setPostToEdit(updatedPost);
       }
@@ -454,6 +474,14 @@ const Forum = () => {
           (c) => c.id !== commentToDelete.id
         ),
       });
+      // Frissítjük a kommentek számát a posztban
+      setPosts(
+        posts.map((p) =>
+          p.id === commentToDelete.postId
+            ? { ...p, comment_count: Math.max((p.comment_count || 0) - 1, 0) }
+            : p
+        )
+      );
       setCommentToDelete(null);
     } catch (err) {
       console.error("Komment törlési hiba:", err);
@@ -530,7 +558,9 @@ const Forum = () => {
 
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/comments/${commentToEdit.id}/attachments`,
+        `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/comments/${
+          commentToEdit.id
+        }/attachments`,
         formData,
         {
           headers: {
@@ -541,8 +571,12 @@ const Forum = () => {
       );
 
       // Frissítjük a kommenteket
-      const commentsData = await forumService.getComments(commentToEdit.post_id);
-      const updatedComment = commentsData.find(c => c.id === commentToEdit.id);
+      const commentsData = await forumService.getComments(
+        commentToEdit.post_id
+      );
+      const updatedComment = commentsData.find(
+        (c) => c.id === commentToEdit.id
+      );
       if (updatedComment) {
         setCommentToEdit(updatedComment);
       }
@@ -776,7 +810,12 @@ const Forum = () => {
                         {post.title}
                       </Typography>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          flexWrap: "wrap",
+                        }}
                       >
                         <Typography
                           variant="body2"
@@ -846,7 +885,8 @@ const Forum = () => {
                     variant="body1"
                     sx={{
                       color: "#555",
-                      mb: post.attachments && post.attachments.length > 0 ? 2 : 3,
+                      mb:
+                        post.attachments && post.attachments.length > 0 ? 2 : 3,
                       whiteSpace: "pre-wrap",
                       lineHeight: 1.8,
                       fontSize: "1rem",
@@ -883,7 +923,10 @@ const Forum = () => {
                             size="small"
                             startIcon={<DownloadIcon />}
                             onClick={() => {
-                              const url = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${attachment.file_url}`;
+                              const url = `${
+                                process.env.REACT_APP_API_URL ||
+                                "http://localhost:5000"
+                              }${attachment.file_url}`;
                               window.open(url, "_blank");
                             }}
                             sx={{
@@ -921,7 +964,8 @@ const Forum = () => {
                       {expandedPosts[post.id]
                         ? "Kommentek elrejtése"
                         : "Kommentek megjelenítése"}
-                      {comments[post.id] && ` (${comments[post.id].length})`}
+                      {post.comment_count !== undefined &&
+                        ` (${post.comment_count})`}
                     </Button>
 
                     <Collapse in={expandedPosts[post.id]}>
@@ -995,7 +1039,14 @@ const Forum = () => {
                                               comment.author_id
                                             )}
                                           </Avatar>
-                                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+                                          <Box
+                                            sx={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: 0.5,
+                                              flexWrap: "wrap",
+                                            }}
+                                          >
                                             <Typography
                                               variant="caption"
                                               color="text.secondary"
@@ -1006,7 +1057,10 @@ const Forum = () => {
                                             >
                                               {formatDate(comment.created_at)}
                                             </Typography>
-                                            {isEdited(comment.created_at, comment.updated_at) && (
+                                            {isEdited(
+                                              comment.created_at,
+                                              comment.updated_at
+                                            ) && (
                                               <Typography
                                                 variant="caption"
                                                 sx={{
@@ -1016,11 +1070,14 @@ const Forum = () => {
                                                   px: 0.75,
                                                   py: 0.25,
                                                   borderRadius: "6px",
-                                                  backgroundColor: "rgba(102, 126, 234, 0.1)",
-                                                  border: "1px solid rgba(102, 126, 234, 0.2)",
+                                                  backgroundColor:
+                                                    "rgba(102, 126, 234, 0.1)",
+                                                  border:
+                                                    "1px solid rgba(102, 126, 234, 0.2)",
                                                 }}
                                               >
-                                                szerkesztve: {formatDate(comment.updated_at)}
+                                                szerkesztve:{" "}
+                                                {formatDate(comment.updated_at)}
                                               </Typography>
                                             )}
                                           </Box>
@@ -1078,56 +1135,80 @@ const Forum = () => {
                                           color: "#444",
                                           lineHeight: 1.6,
                                           pl: 5.5,
-                                          mb: comment.attachments && comment.attachments.length > 0 ? 1 : 0,
+                                          mb:
+                                            comment.attachments &&
+                                            comment.attachments.length > 0
+                                              ? 1
+                                              : 0,
                                         }}
                                       >
                                         {comment.content}
                                       </Typography>
-                                      
+
                                       {/* Comment Attachments */}
-                                      {comment.attachments && comment.attachments.length > 0 && (
-                                        <Box sx={{ pl: 5.5, mt: 1 }}>
-                                          {comment.attachments.map((attachment) => (
-                                            <Box
-                                              key={attachment.id}
-                                              sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1,
-                                                p: 1,
-                                                mb: 1,
-                                                borderRadius: "8px",
-                                                backgroundColor: "rgba(102, 126, 234, 0.05)",
-                                                border: "1px solid rgba(102, 126, 234, 0.2)",
-                                              }}
-                                            >
-                                              <AttachFileIcon sx={{ color: "#667eea", fontSize: 18 }} />
-                                              <Typography
-                                                variant="caption"
-                                                sx={{ flex: 1, color: "#333" }}
-                                              >
-                                                {attachment.filename}
-                                              </Typography>
-                                              <Button
-                                                size="small"
-                                                startIcon={<DownloadIcon />}
-                                                onClick={() => {
-                                                  const url = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${attachment.file_url}`;
-                                                  window.open(url, "_blank");
-                                                }}
-                                                sx={{
-                                                  color: "#667eea",
-                                                  textTransform: "none",
-                                                  minWidth: "auto",
-                                                  px: 1,
-                                                }}
-                                              >
-                                                Letöltés
-                                              </Button>
-                                            </Box>
-                                          ))}
-                                        </Box>
-                                      )}
+                                      {comment.attachments &&
+                                        comment.attachments.length > 0 && (
+                                          <Box sx={{ pl: 5.5, mt: 1 }}>
+                                            {comment.attachments.map(
+                                              (attachment) => (
+                                                <Box
+                                                  key={attachment.id}
+                                                  sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                    p: 1,
+                                                    mb: 1,
+                                                    borderRadius: "8px",
+                                                    backgroundColor:
+                                                      "rgba(102, 126, 234, 0.05)",
+                                                    border:
+                                                      "1px solid rgba(102, 126, 234, 0.2)",
+                                                  }}
+                                                >
+                                                  <AttachFileIcon
+                                                    sx={{
+                                                      color: "#667eea",
+                                                      fontSize: 18,
+                                                    }}
+                                                  />
+                                                  <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                      flex: 1,
+                                                      color: "#333",
+                                                    }}
+                                                  >
+                                                    {attachment.filename}
+                                                  </Typography>
+                                                  <Button
+                                                    size="small"
+                                                    startIcon={<DownloadIcon />}
+                                                    onClick={() => {
+                                                      const url = `${
+                                                        process.env
+                                                          .REACT_APP_API_URL ||
+                                                        "http://localhost:5000"
+                                                      }${attachment.file_url}`;
+                                                      window.open(
+                                                        url,
+                                                        "_blank"
+                                                      );
+                                                    }}
+                                                    sx={{
+                                                      color: "#667eea",
+                                                      textTransform: "none",
+                                                      minWidth: "auto",
+                                                      px: 1,
+                                                    }}
+                                                  >
+                                                    Letöltés
+                                                  </Button>
+                                                </Box>
+                                              )
+                                            )}
+                                          </Box>
+                                        )}
                                     </Box>
                                   ))}
                                 </Box>
@@ -1167,7 +1248,8 @@ const Forum = () => {
                                   onClick={() => handleCreateComment(post.id)}
                                   disabled={
                                     submittingComment[post.id] ||
-                                    ((!newComments[post.id] || !newComments[post.id].trim()) &&
+                                    ((!newComments[post.id] ||
+                                      !newComments[post.id].trim()) &&
                                       !newCommentFiles[post.id])
                                   }
                                   sx={{
@@ -1184,13 +1266,22 @@ const Forum = () => {
                                   }}
                                 >
                                   {submittingComment[post.id] ? (
-                                    <CircularProgress size={20} color="inherit" />
+                                    <CircularProgress
+                                      size={20}
+                                      color="inherit"
+                                    />
                                   ) : (
                                     <SendIcon />
                                   )}
                                 </IconButton>
                               </Box>
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
                                 <input
                                   accept="*/*"
                                   style={{ display: "none" }}
@@ -1203,7 +1294,9 @@ const Forum = () => {
                                     });
                                   }}
                                 />
-                                <label htmlFor={`comment-file-upload-${post.id}`}>
+                                <label
+                                  htmlFor={`comment-file-upload-${post.id}`}
+                                >
                                   <Button
                                     component="span"
                                     size="small"
@@ -1214,7 +1307,8 @@ const Forum = () => {
                                       textTransform: "none",
                                       "&:hover": {
                                         borderColor: "#5568d3",
-                                        backgroundColor: "rgba(102, 126, 234, 0.05)",
+                                        backgroundColor:
+                                          "rgba(102, 126, 234, 0.05)",
                                       },
                                     }}
                                     variant="outlined"
@@ -1231,11 +1325,17 @@ const Forum = () => {
                                       px: 1,
                                       py: 0.5,
                                       borderRadius: "8px",
-                                      backgroundColor: "rgba(102, 126, 234, 0.05)",
+                                      backgroundColor:
+                                        "rgba(102, 126, 234, 0.05)",
                                     }}
                                   >
-                                    <AttachFileIcon sx={{ color: "#667eea", fontSize: 16 }} />
-                                    <Typography variant="caption" sx={{ fontSize: "0.75rem" }}>
+                                    <AttachFileIcon
+                                      sx={{ color: "#667eea", fontSize: 16 }}
+                                    />
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ fontSize: "0.75rem" }}
+                                    >
                                       {newCommentFiles[post.id].name}
                                     </Typography>
                                     <IconButton
@@ -1295,7 +1395,10 @@ const Forum = () => {
         </DialogTitle>
         <DialogContent sx={{ pt: 5, pb: 2 }}>
           <Box sx={{ mb: 3, mt: 1 }}>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: "#666" }}>
+            <Typography
+              variant="body2"
+              sx={{ mb: 1, fontWeight: 500, color: "#666" }}
+            >
               Cím *
             </Typography>
             <TextField
@@ -1308,7 +1411,10 @@ const Forum = () => {
             />
           </Box>
           <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: "#666" }}>
+            <Typography
+              variant="body2"
+              sx={{ mb: 1, fontWeight: 500, color: "#666" }}
+            >
               Tartalom *
             </Typography>
             <TextField
@@ -1374,7 +1480,9 @@ const Forum = () => {
                     <IconButton
                       size="small"
                       onClick={() => {
-                        setNewPostFiles((prev) => prev.filter((_, i) => i !== index));
+                        setNewPostFiles((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        );
                       }}
                       sx={{ color: "#d32f2f" }}
                     >
@@ -1387,10 +1495,14 @@ const Forum = () => {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => {
-            setOpenPostDialog(false);
-            setNewPostFiles([]);
-          }}>Mégse</Button>
+          <Button
+            onClick={() => {
+              setOpenPostDialog(false);
+              setNewPostFiles([]);
+            }}
+          >
+            Mégse
+          </Button>
           <Button
             onClick={handleCreatePost}
             variant="contained"
@@ -1625,7 +1737,10 @@ const Forum = () => {
         </DialogTitle>
         <DialogContent sx={{ pt: 5, pb: 2 }}>
           <Box sx={{ mb: 3, mt: 1 }}>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: "#666" }}>
+            <Typography
+              variant="body2"
+              sx={{ mb: 1, fontWeight: 500, color: "#666" }}
+            >
               Cím *
             </Typography>
             <TextField
@@ -1638,7 +1753,10 @@ const Forum = () => {
             />
           </Box>
           <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: "#666" }}>
+            <Typography
+              variant="body2"
+              sx={{ mb: 1, fontWeight: 500, color: "#666" }}
+            >
               Tartalom *
             </Typography>
             <TextField
@@ -1652,7 +1770,7 @@ const Forum = () => {
               variant="outlined"
             />
           </Box>
-          
+
           {/* Existing Attachments */}
           {postToEdit?.attachments && postToEdit.attachments.length > 0 && (
             <Box sx={{ mb: 2 }}>
@@ -1698,7 +1816,7 @@ const Forum = () => {
               ))}
             </Box>
           )}
-          
+
           {/* Add New Attachment */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -1752,7 +1870,8 @@ const Forum = () => {
                   disabled={uploadingAttachment}
                   variant="contained"
                   sx={{
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     textTransform: "none",
                     minWidth: "auto",
                     px: 2,
@@ -1908,7 +2027,10 @@ const Forum = () => {
         </DialogTitle>
         <DialogContent sx={{ pt: 5, pb: 2 }}>
           <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: "#666" }}>
+            <Typography
+              variant="body2"
+              sx={{ mb: 1, fontWeight: 500, color: "#666" }}
+            >
               Komment tartalma *
             </Typography>
             <TextField
@@ -1918,7 +2040,7 @@ const Forum = () => {
               placeholder="Írd be a komment tartalmát..."
               value={editingCommentContent}
               onChange={(e) => setEditingCommentContent(e.target.value)}
-              sx={{ 
+              sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
                 },
@@ -1927,53 +2049,54 @@ const Forum = () => {
               variant="outlined"
             />
           </Box>
-          
+
           {/* Existing Attachments */}
-          {commentToEdit?.attachments && commentToEdit.attachments.length > 0 && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Csatolt fájlok:
-              </Typography>
-              {commentToEdit.attachments.map((attachment) => (
-                <Box
-                  key={attachment.id}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    p: 1.5,
-                    mb: 1,
-                    borderRadius: "8px",
-                    backgroundColor: "rgba(102, 126, 234, 0.05)",
-                    border: "1px solid rgba(102, 126, 234, 0.2)",
-                  }}
-                >
-                  <AttachFileIcon sx={{ color: "#667eea", fontSize: 18 }} />
-                  <Typography variant="body2" sx={{ flex: 1, color: "#333" }}>
-                    {attachment.filename}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteAttachment(attachment.id)}
-                    disabled={deletingAttachment === attachment.id}
+          {commentToEdit?.attachments &&
+            commentToEdit.attachments.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Csatolt fájlok:
+                </Typography>
+                {commentToEdit.attachments.map((attachment) => (
+                  <Box
+                    key={attachment.id}
                     sx={{
-                      color: "#d32f2f",
-                      "&:hover": {
-                        backgroundColor: "rgba(211, 47, 47, 0.1)",
-                      },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      p: 1.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "rgba(102, 126, 234, 0.05)",
+                      border: "1px solid rgba(102, 126, 234, 0.2)",
                     }}
                   >
-                    {deletingAttachment === attachment.id ? (
-                      <CircularProgress size={16} />
-                    ) : (
-                      <DeleteIcon fontSize="small" />
-                    )}
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
-          )}
-          
+                    <AttachFileIcon sx={{ color: "#667eea", fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ flex: 1, color: "#333" }}>
+                      {attachment.filename}
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteAttachment(attachment.id)}
+                      disabled={deletingAttachment === attachment.id}
+                      sx={{
+                        color: "#d32f2f",
+                        "&:hover": {
+                          backgroundColor: "rgba(211, 47, 47, 0.1)",
+                        },
+                      }}
+                    >
+                      {deletingAttachment === attachment.id ? (
+                        <CircularProgress size={16} />
+                      ) : (
+                        <DeleteIcon fontSize="small" />
+                      )}
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
           {/* Add New Attachment */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -2028,7 +2151,8 @@ const Forum = () => {
                   disabled={uploadingCommentAttachment}
                   variant="contained"
                   sx={{
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     textTransform: "none",
                     minWidth: "auto",
                     px: 2,
