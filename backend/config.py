@@ -7,4 +7,4 @@ class Config:
     if db_url.startswith('mysql://'):
         db_url = db_url.replace('mysql://', 'mysql+pymysql://', 1)
     
-    SQLALCHEMY_DATABASE_URI
+    SQLALCHEMY_DATABASE_URI = db_url
