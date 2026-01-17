@@ -94,6 +94,17 @@ const groupService = {
     return response.data;
   },
 
+  leaveGroup: async (groupId) => {
+    const token = getAuthToken();
+    const response = await api.delete(`/groups/${groupId}/leave`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+  
+
   myGroups: async () => {
     const token = getAuthToken();
     const response = await api.get("/groups/my-groups", {

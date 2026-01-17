@@ -8,6 +8,7 @@ from models import db, User, Group, GroupMember, Post, Comment, Event, PostView,
 import os
 import requests
 from werkzeug.utils import secure_filename
+from config import Config
 #valami
 
 TANREND_API_URL = "https://elte-orarend.vercel.app"
@@ -1548,4 +1549,41 @@ def register_routes(app):
         db.session.commit()
 
         return jsonify({"message": "Fájl sikeresen törölve"}), 200
+    
+    @app.route('/groups/<int:group_id>/leave', methods=['DELETE', 'OPTIONS'])
+    def leavegroup(group_id):
+        if request.method == 'OPTIONS':
+            return {}, 200
+        
+        authheader = request.headers.get('Authorization')
+        if not authheader:
+            return jsonify(error='Hiányzik token'), 401
+        
+        try:
+            token = authheader.split(' ')[1]
+            decoded = verify_jwt_token(token)
+        except:
+            return jsonify(error='Hibás token'), 401
+        
+        if not decoded:
+            return jsonify(error='Érvénytelen vagy lejárt token'), 401
+        
+        userid = decoded.get('user_id')
+        if not userid:
+            return jsonify(error='Token-ben nincs user_id'), 401
+        
+        # HELYES MEZŐNEVEK!
+        membership = GroupMember.query.filter_by(
+            user_id=userid,    # ← user_id nem userid!
+            group_id=group_id  # ← group_id nem groupid!
+        ).first()
+        
+        if not membership:
+            return jsonify(error='Nem vagy tagja ennek a csoportnak'), 403
+        
+        db.session.delete(membership)
+        db.session.commit()
+        
+        return jsonify(message='Sikeresen kiléptél a csoportból!'), 200
+
 
