@@ -13,6 +13,8 @@ class User(db.Model):
     
     major = db.Column(db.String(100), nullable=True)
     name = db.Column(db.String(100), nullable=True)  
+    neptun_code = db.Column(db.String(20), nullable=True, unique=True, index=True)
+    current_semester = db.Column(db.String(20), nullable=True)
     hobbies = db.Column(db.Text, nullable=True)
     avatar_url = db.Column(db.String(255), nullable=True)
 

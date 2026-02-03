@@ -9,7 +9,10 @@ import os
 import requests
 from werkzeug.utils import secure_filename
 from config import Config
-#valami
+import secrets
+import string
+from flask_mail import Message, current_app
+
 
 TANREND_API_URL = "https://elte-orarend.vercel.app"
 
@@ -24,8 +27,12 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 
 # Email minta
-ELTE_EMAIL_REGEX = r"^[a-zA-Z0-9._%+-]+@(student\.elte\.hu|elte\.hu)$"
+ELTE_EMAIL_REGEX = r"^[a-zA-Z0-9._%+-]+@(student\.elte\.hu|inf\.elte\.hu)$"
 
+def generate_temp_password(length=12):
+    """Generál random erős jelszót: betűk, számok, speciális karakterek."""
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(chars) for _ in range(length))
 
 def create_jwt_token(user_id):
     expiration = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -49,64 +56,110 @@ def verify_jwt_token(token):
 
 
 def register_routes(app):
-
+    # Mailtrap app-ból jön
+    mail = app.extensions['mail']  # Vagy current_app.extensions['mail']
+    
     @app.route("/register", methods=["POST","OPTIONS"])
     def register():
         if request.method == "OPTIONS":
             return "", 200
+        
         data = request.get_json()
+        print("📥 NYERS DATA:", data)  # 👈 DEBUG PRINT!
         if not data:
-            return jsonify({
-                "error": "Hibás JSON formátum",
-                "code": 400
-            }), 400
-            
+            return jsonify({"error": "Hibás JSON formátum", "code": 400}), 400
+        
+        mail = current_app.extensions.get('mail')
+        if not mail:
+            print("❌ MAIL NEM INICIALIZÁLT!")
 
+        if isinstance(data, dict) and len(data) == 1 and 'email' in data:
+            
+            data = data['email']
+        
         email = data.get("email")
-        password = data.get("password")
+        print("📧 EMAIL:", email, type(email))  # 👈 DEBUG!
+
+        if isinstance(email, dict):  # 👈 BIZTONSÁG!
+            print("❌ EMAIL DICT!:", email)
+            return jsonify({"error": "Email formátum hiba!"}), 400
+    
         name = data.get("name")
-        major = data.get("major")  
+        neptun_code = data.get("neptunCode")
+        semester = data.get("semester")
+        major = data.get("major")
         hobbies = data.get("hobbies", [])
         hobbies_str = ",".join(hobbies) if isinstance(hobbies, list) else str(hobbies)
-        avatar_url = data.get("avatar_url", None) 
+        avatar_url = data.get("avatar_url", None)
 
-        if not re.match(ELTE_EMAIL_REGEX, email):
+        # Validációk
+        if not re.match(app.config['ELTE_EMAIL_REGEX'], email):
             return jsonify({"message": "Csak ELTE-s email használható!"}), 400
-
         if not major:
             return jsonify({"message": "A szak megadása kötelező!"}), 400
-
         if User.query.filter_by(email=email).first():
             return jsonify({"message": "Ez az email már regisztrálva van!"}), 400
+        if neptun_code and len(neptun_code) != 6:
+            return jsonify({"message": "Neptun kód 6 karakter legyen!"}), 400
 
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode()
+        # Random temp jelszó
+        temp_password = generate_temp_password()
+        password_hash = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        #bio_value = ",".join(interests) if isinstance(interests, list) else interests
-        
+        # Új user
         new_user = User(
             email=email,
             password_hash=password_hash,
             major=major,
             name=name,
             hobbies=hobbies_str,
-            avatar_url=avatar_url
+            avatar_url=avatar_url,
+            neptun_code=neptun_code,
+            current_semester=semester
         )
-
         db.session.add(new_user)
         db.session.commit()
 
+        # Email küldés
+        try:
+            msg = Message(
+                "Üdv a StudyConnect világában! - Ideiglenes jelszavad",
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[email]
+            )
+            msg.html = f"""
+            <html>
+            <body>
+                <h2>Kedves {name}!</h2>
+                <p>Sikeresen regisztráltál a StudyConnect-re. 🎉</p>
+                <h3><strong>Ideiglenes jelszavad:</strong> <code style='background:#f0f0f0;padding:5px'>{temp_password}</code></h3>
+                <p><em>Belépés után <strong>mindenképp cseréld meg</strong> biztonsági okokból!</em></p>
+                <p>Ha nem te regisztráltál, nyugodtan törölheted ezt az emailt.</p>
+                <hr>
+                <p>Üdvözlettel,<br><strong>StudyConnect Team</strong></p>
+            </body>
+            </html>
+            """
+            mail.send(msg)
+            print(f"Email elküldve: {email}")
+        except Exception as e:
+            print(f"Email hiba: {e}")
+            # Regisztráció marad sikeres!
+
         return jsonify({
-        "user": {
-            "id": new_user.id,
-            "email": new_user.email,
-            "name": new_user.name,
-            "major": new_user.major,
-            "hobbies": new_user.hobbies,
-            "avatar_url": new_user.avatar_url
-        },
-        "token": create_jwt_token(new_user.id),
-        "message": "Sikeres regisztráció!"
-    }), 201
+            "user": {
+                "id": new_user.id,
+                "email": new_user.email,
+                "name": new_user.name,
+                "major": new_user.major,
+                "hobbies": new_user.hobbies,
+                "avatar_url": new_user.avatar_url,
+                "neptun_code": new_user.neptun_code,
+                "semester": new_user.current_semester
+            },
+            "token": create_jwt_token(new_user.id),
+            "message": "Sikeres regisztráció! Ellenőrizd az email fiókodat! 📧"
+        }), 201
 
     @app.route("/login", methods=["POST", "OPTIONS"])
     def login():

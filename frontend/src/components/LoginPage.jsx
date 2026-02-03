@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
 import { toast } from "sonner";
+import { authService } from '../service/api';
 
 function LoginPage({ onLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState("");
@@ -14,18 +15,25 @@ function LoginPage({ onLogin, onSwitchToRegister }) {
   const [forgotEmail, setForgotEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {  // async-ra változtatva
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please fill in all fields");
+      toast.error("Kérlek töltsd ki az összes mezőt");  // Magyarosítva opcionálisan
       return;
     }
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      onLogin(email, password);
+    try {
+      // TÉNYLEGES API HÍVÁS: authService.login használata
+      await authService.login(email, password);
+      // Sikeres: token mentődik localStorage-be automatikusan a service-ben
+      toast.success("Sikeres bejelentkezés!");
+      onLogin(email, password);  // Callback az App-hoz
+    } catch (error) {
+      // Hibakezelés a service-ből (pl. "Login failed")
+      toast.error(error.message || error || "Bejelentkezés sikertelen");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const handleForgotPassword = (e) => {

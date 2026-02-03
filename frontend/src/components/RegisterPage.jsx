@@ -32,6 +32,7 @@ import {
 } from "./ui/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { toast } from "sonner";
+import { authService } from '../service/api';
 
 const MAJORS = [
 'IK - autonómrendszer-informatikus',
@@ -173,45 +174,54 @@ export function RegisterPage({ onRegister, onSwitchToLogin }) {
     return email.endsWith("@inf.elte.hu") || email.endsWith("@student.hu");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!name || !email || !major || !neptuneCode || !semester) {
       toast.error("Please fill in all fields");
       return;
     }
-
+  
     if (!validateEmail(email)) {
       toast.error("Email must end with @inf.elte.hu or @student.hu");
       return;
     }
-
+  
     if (neptuneCode.length !== 6) {
       toast.error("Neptune code must be 6 characters long");
       return;
     }
-
+  
     setIsLoading(true);
-
-    setTimeout(() => {
+  
+    try {
+      // 👈 userData MOST készül el!
       const userData = {
         name,
         email,
         major,
-        neptuneCode,
+        neptunCode: neptuneCode,  // 👈 neptuneCode state-ból!
         semester,
-        hobbies,
-        registeredAt: new Date().toISOString(),
+        hobbies: Array.isArray(hobbies) ? hobbies : [],  // 👈 Biztonságos!
       };
-
+  
+      console.log("📤 Küldés:", userData);  // Debug
+  
+      await authService.register(userData);
+      
       toast.success("Registration successful!", {
-        description: `A temporary password has been sent to ${email}`,
+        description: `Temporary password sent to ${email}!`,
       });
-
       onRegister(userData);
+    } catch (error) {
+      console.error("❌ Hiba:", error);
+      toast.error(error?.message || "Registration failed!");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
+  
+  
 
   const filteredMajors = MAJORS.filter((m) =>
     m.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -353,7 +363,7 @@ export function RegisterPage({ onRegister, onSwitchToLogin }) {
                     setNeptuneCode(e.target.value.toUpperCase())
                   }
                   className="pl-10"
-                  maxLength={7}
+                  maxLength={6}
                   required
                 />
               </div>
