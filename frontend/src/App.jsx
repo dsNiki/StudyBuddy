@@ -7,6 +7,7 @@ import HomePage from "./components/HomePage";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import { authService } from "./service/api";
+import {ProfileSettingsPage} from "./components/ProfileSettingsPage";
 
 function ProtectedHomePage() {
   const navigate = useNavigate();
@@ -87,6 +88,7 @@ function App() {
         <Route path="/register" element={<AuthPages />} />
         <Route path="/search" element={<ProtectedHomePage />} />
         <Route path="/mygroups" element={<ProtectedHomePage />} />
+        <Route path="/profile" element={<ProfileSettingsPage />} />
       </Routes>
       <Toaster position="top-right" richColors closeButton />
     </Router>

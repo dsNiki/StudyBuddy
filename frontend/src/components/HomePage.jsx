@@ -1,23 +1,22 @@
-import { useEffect } from "react";  // ÚJ: useEffect auth check-hez
-import { useNavigate } from "react-router-dom";  // ÚJ: navigate-hez
-import { BookOpen, Users, Search, Sparkles, LogOut } from "lucide-react";  // ÚJ: LogOut icon
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { BookOpen, Users, Search, Sparkles, LogOut, User } from "lucide-react";  // ÚJ: User icon
 import { Button } from "./ui/button";
-// ÚJ: authService import (módosítsd útvonalat pl. "../../api/routespy")
-import { authService } from "../service/api";  // routespy.txt vagy apijs.txt[file:4]
+import { authService } from "../service/api";
 
-function HomePage() {  // onNavigate prop eltávolítva, routinggal helyettesítve
+function HomePage() {
   const navigate = useNavigate();
 
-  // ÚJ: Auth ellenőrzés - ha nincs bejelentkezve, login-ra dob
+  // Auth ellenőrzés - ha nincs bejelentkezve, login-ra dob
   useEffect(() => {
     if (!authService.isAuthenticated()) {
       navigate("/login");
     }
   }, [navigate]);
 
-  // ÚJ: Logout handler
+  // Logout handler
   const handleLogout = () => {
-    authService.logout();  // localStorage.clear() + event dispatch[file:4]
+    authService.logout();
     navigate("/login");
   };
 
@@ -46,23 +45,36 @@ function HomePage() {  // onNavigate prop eltávolítva, routinggal helyettesít
 
   return (
     <div className="min-h-screen bg-background pt-0 md:pt-0">
-      {/* ÚJ: Header logout gombbal */}
+      {/* Header - KIJELENTKEZÉS + ÚJ PROFIL gomb */}
       <header className="container mx-auto px-6 py-4 border-b border-border">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary">StudyConnect</h1>
-          <Button 
-            onClick={handleLogout}
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
-          >
-            <LogOut className="w-4 h-4" />
-            Kijelentkezés
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* ÚJ: Profil gomb */}
+            <Button 
+              onClick={() => navigate("/profile")} 
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2 hover:bg-primary/10"
+            >
+              <User className="w-4 h-4" />
+              Profil
+            </Button>
+            {/* Kijelentkezés gomb */}
+            <Button 
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <LogOut className="w-4 h-4" />
+              Kijelentkezés
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section - gombok módosítva routingra */}
+      {/* Hero Section */}
       <div className="container mx-auto px-6 py-12 md:py-20">
         <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full shadow-lg mb-8">
@@ -79,7 +91,7 @@ function HomePage() {  // onNavigate prop eltávolítva, routinggal helyettesít
           
           <div className="flex gap-4 justify-center flex-col sm:flex-row">
             <Button 
-              onClick={() => navigate("/search")}  // onNavigate("search") -> routing
+              onClick={() => navigate("/search")}
               className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Search className="w-5 h-5 mr-2" />
@@ -87,7 +99,7 @@ function HomePage() {  // onNavigate prop eltávolítva, routinggal helyettesít
             </Button>
             
             <Button 
-              onClick={() => navigate("/mygroups")}  // onNavigate("mygroups") -> routing
+              onClick={() => navigate("/mygroups")}
               variant="outline"
               className="px-8 py-6 text-lg rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
             >
