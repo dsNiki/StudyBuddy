@@ -53,6 +53,21 @@ const authService = {
     }
   },
 
+  forgotPassword: async (email) => {
+    try {
+      const response = await api.post("/forgot-password", { email });
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+      }
+      if (response.data.user) {
+        localStorage.setItem("authUser", JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.message || "Forgot password failed";
+    }
+  },
+
   logout: () => {
     localStorage.clear(); // ← MINDEN törlése!
     window.dispatchEvent(new Event("storage")); // ← Redux értesítés

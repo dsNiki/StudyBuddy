@@ -1691,5 +1691,94 @@ def register_routes(app):
         db.session.commit()
         
         return jsonify(message='Sikeresen kiléptél a csoportból!'), 200
+    @app.route("/forgot-password", methods=["POST", "OPTIONS"])
+    def forgot_password():
+        if request.method == "OPTIONS":
+            return "", 200
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Hibás JSON formátum"}), 400
+        
+        requested_email = data.get("email")
+        if not requested_email:
+            return jsonify({"message": "Email cím megadása kötelező!"}), 400
+        
+        user = User.query.filter_by(secondary_email=requested_email).first()
+        
+        if not user:
+            return jsonify({"message": "Nincs ilyen másodlagos email cím regisztrálva!"}), 404
+        
+        temp_password = generate_temp_password()
+        password_hash = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        user.password_hash = password_hash
+        db.session.commit()
+        
+        send_to_email = requested_email
+        
+        # Brevo email
+        try:
+            headers = {
+                'accept': 'application/json',
+                'api-key': os.getenv('BREVO_API_KEY'),
+                'content-type': 'application/json'
+            }
+            
+            response = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers=headers,
+                json={
+                    'sender': {'name': 'StudyConnect', 'email': 'studyconnectnoreply@gmail.com'},
+                    'to': [{'email': send_to_email, 'name': user.name}],
+                    'subject': '🔑 StudyConnect - Új ideiglenes jelszó',
+                    'htmlContent': f"""
+                    <html>
+                    <body style='font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 600px; padding: 40px 20px; line-height: 1.6; color: #333;'>
+                        <h2 style='color: #2c3e50; margin: 0 0 30px 0; font-size: 24px; font-weight: 600;'>Új ideiglenes jelszó!</h2>
+                        
+                        <div style='background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 30px; margin: 0 0 30px 0;'>
+                            <h3 style='margin: 0 0 20px 0; color: #495057; font-size: 16px; font-weight: 500;'>Új jelszavad:</h3>
+                            <div style='background: white; border: 2px solid #dee2e6; border-radius: 6px; padding: 20px; text-align: center;'>
+                                <h1 style='letter-spacing: 2px; font-size: 28px; margin: 0; font-weight: 700; color: #2c3e50; font-family: monospace;'>{temp_password}</h1>
+                            </div>
+                            <p style='margin: 20px 0 0 0; color: #6c757d; font-size: 14px;'>
+                                Belépés után cseréld le a jelszót!
+                            </p>
+                        </div>
+                        
+                        <div style='background: #e9ecef; padding: 20px; border-radius: 6px;'>
+                            <p style='margin: 0 0 10px 0; font-weight: 500; color: #495057;'>Belépés (ELTE emaillel):</p>
+                            <p style='margin: 0; color: #6c757d; font-size: 14px;'>
+                                <strong>localhost:3000/login</strong>
+                            </p>
+                        </div>
+                        
+                        <hr style='border: none; border-top: 1px solid #e9ecef; margin: 40px 0;'>
+                        <p style='color: #6c757d; font-size: 14px; margin: 0;'>
+                            Üdvözlettel,<br>
+                            <strong>StudyConnect Team</strong>
+                        </p>
+                    </body>
+                    </html>
+                    """
+                }
+            )
+            
+            print(f"FORGOT BREVO: {response.status_code} → {send_to_email}")
+            if response.status_code in [201, 202]:
+                print(f"Új jelszó elküldve: {send_to_email}")
+            else:
+                print(f"BREVO HIBA: {response.text[:200]}")
+                
+        except Exception as e:
+            print(f"BREVO Exception: {str(e)}")
+            return jsonify({"error": "Email küldési hiba!"}), 500
+        
+        return jsonify({
+            "message": f"Új jelszó elküldve {send_to_email}-re! 📧"
+        }), 200
+
+
 
 

@@ -36,22 +36,27 @@ function LoginPage({ onLogin, onSwitchToRegister }) {
     }
   };
 
-  const handleForgotPassword = (e) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!forgotEmail) {
-      toast.error("Please enter your email address");
+      toast.error("Kérlek add meg a másodlagos email címed! (Nem ELTE-s)");
       return;
     }
+    
     setIsLoading(true);
-    // Simulate sending email
-    setTimeout(() => {
-      toast.success(`Temporary password sent to ${forgotEmail}`, {
-        description: "Please check your email inbox"
+    
+    try {
+      await authService.forgotPassword(forgotEmail);
+      toast.success(`Ideiglenes jelszó elküldve ${forgotEmail}-re!`, {
+        description: "Ellenőrizd a postafiókod!"
       });
       setShowForgotPassword(false);
       setForgotEmail("");
+    } catch (error) {
+      toast.error(error?.message || "Hiba történt! Valószínűleg a megadott másodlagos e-mail cím nincs regisztrálva.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   if (showForgotPassword) {
@@ -78,20 +83,23 @@ function LoginPage({ onLogin, onSwitchToRegister }) {
 
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <div>
-              <Label htmlFor="forgot-email">E-mail cím</Label>
+              <Label htmlFor="forgot-email">Másodlagos e-mail cím</Label>
               <div style={{height: 10 + 'px'}}></div>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="forgot-email"
                   type="email"
-                  placeholder="your.email@inf.elte.hu"
+                  placeholder="your.email@gmail.com"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   className="pl-10"
                   required
                 />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Nem ELTE-s cím! Erre küldjük az ideiglenes jelszót és az egyetemi levelező rendszer blokkolhatja az üzenetet.
+              </p>
             </div>
 
             <Button
