@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Users, Search, Sparkles, LogOut, User } from "lucide-react";  // ÚJ: User icon
+import { BookOpen, Users, Search, Sparkles, MessageSquare, UserPlus, Calendar, User, LogOut} from "lucide-react";  // ÚJ: User icon
 import { Button } from "./ui/button";
 import { authService } from "../service/api";
+
+
 
 function HomePage() {
   const navigate = useNavigate();
@@ -23,23 +25,23 @@ function HomePage() {
   const features = [
     {
       icon: Search,
-      title: "Find Study Groups",
-      description: "Search through hundreds of subjects and find the perfect study group for your courses"
+      title: "Tanulócsoport keresés",
+      description: "Böngéssz több száz tantárgy között, és találd meg a kurzusaidhoz tökéletes tanulócsoportot"
     },
     {
       icon: Users,
-      title: "Connect with Peers",
-      description: "Join groups and collaborate with fellow students who share your academic interests"
+      title: "Lépjen kapcsolatba a szaktársakkal",
+      description: "Csatlakozz csoportokhoz, és működj együtt a diáktársakkal a könyebb tanulás érdekében"
     },
     {
       icon: BookOpen,
-      title: "Organize Your Studies",
-      description: "Keep track of all your study groups and manage your academic schedule efficiently"
+      title: "Szervezze meg tanulmányait",
+      description: "Kövesd nyomon az összes tanulmányi csoportodat, és kezeld hatékonyan a tanulmányi időbeosztásodat"
     },
     {
       icon: Sparkles,
-      title: "Excel Together",
-      description: "Achieve better grades through collaborative learning and peer support"
+      title: "Fejlödjetek közösen",
+      description: "Érj el jobb jegyeket az együttmükődés és a támogatás által"
     }
   ];
 
@@ -82,11 +84,11 @@ function HomePage() {
           </div>
           
           <h1 className="text-5xl mb-6 text-primary">
-            Welcome to StudyConnect
+            Üdvözli a StudyConnect
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Find your perfect study group, connect with peers, and excel in your courses through collaborative learning
+          Találd meg a számodra tökéletes tanulócsoportot, lépj kapcsolatba társaiddal, és teljesíts a kurzusaidat a közös tanulás segítségével.
           </p>
           
           <div className="flex gap-4 justify-center flex-col sm:flex-row">
@@ -95,7 +97,7 @@ function HomePage() {
               className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Search className="w-5 h-5 mr-2" />
-              Find Study Groups
+              Tanulócsoport kereső
             </Button>
             
             <Button 
@@ -104,7 +106,7 @@ function HomePage() {
               className="px-8 py-6 text-lg rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
             >
               <Users className="w-5 h-5 mr-2" />
-              My Groups
+              Saját csoportok
             </Button>
           </div>
         </div>
@@ -128,21 +130,46 @@ function HomePage() {
           })}
         </div>
 
-        {/* Stats Section */}
-        <div className="mt-20 bg-sidebar rounded-3xl p-12 text-center shadow-2xl">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <div className="text-4xl text-sidebar-foreground mb-2">500+</div>
-              <div className="text-sidebar-foreground/80">Active Study Groups</div>
-            </div>
-            <div>
-              <div className="text-4xl text-sidebar-foreground mb-2">2,500+</div>
-              <div className="text-sidebar-foreground/80">Students Connected</div>
-            </div>
-            <div>
-              <div className="text-4xl text-sidebar-foreground mb-2">150+</div>
-              <div className="text-sidebar-foreground/80">Subjects Covered</div>
-            </div>
+        {/* Quick Actions Section */}
+        <div className="mt-20 bg-sidebar rounded-3xl p-8 md:p-12 shadow-2xl">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl text-white mb-3">Kezdj hozzá ma!</h2>
+            <p className="text-white/70">Válaszd ki, hogyan szeretnél bekapcsolódni a StudyConnectbe</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            <button
+              onClick={handleLogout}
+              className="bg-background/80 hover:bg-background border border-border/50 rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+            >
+              <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Search className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="mb-2 text-black">Csoportok felfedezése</h3>
+              <p className="text-sm text-black/70">Böngéssz és csatlakozz tanuló csoportokhoz az ELTE tantárgy kínálata alapján</p>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-background/80 hover:bg-background border border-border/50 rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+            >
+              <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <UserPlus className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="mb-2 text-black">Hívd meg a társaidat</h3>
+              <p className="text-sm text-black/70">Már van akivel bevált a közös tanulás? Mentsd el ismerősnek és hívd meg a többi csoportodba is</p>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-background/80 hover:bg-background border border-border/50 rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+            >
+              <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Calendar className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="mb-2 text-black">Események szervezése</h3>
+              <p className="text-sm text-black/70">Hozz létre eseményeket a csoportok fórum oldalain, így biztositva hogy mindenki értesül a fontos eseményekről</p>
+            </button>
           </div>
         </div>
       </div>
